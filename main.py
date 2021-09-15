@@ -1,3 +1,29 @@
+# Tested working on esp32-20210902-v1.17.bin
+# to work with this example you need to have the "Serial Bluetooh" android app installed.
+# You Do Not Need to Pair the device!!!
+# once the code is running on the device, the led blinks rapidly.
+# you should see on your thonny terminal (if cable is connected), the initial output:
+#    MPY: soft reboot
+#    bytearray(b'\x02\x01\x02\t\tESP32BLE')
+#    (  not the REPL >>>  we are used to work with. If you have REPL press Ctrl+D to soft boot)
+
+# on your phone:
+
+#    open the Serial Bluetooth app,
+#    press the app menu and select devices.
+#    press the luetooth LE tab.
+#    you should see ESP32BLE. Select it.
+# the led should stop blinking (this is to show you are connected).
+# now you can use the phone terminal to query the status of the LED.
+# to do this, you need program the M4 macro on the terminal. Long press it to access the editing mode.
+#   change the name to read_LED
+#   change the Value to read_LED. No need to change anything else.
+# press V to confirm.
+# you can now Press read_LED.
+# this is a bidirectional command, so you get a status on your Phone, but you also see in the terminal
+# that the device received this command from your phone.
+# each time you toggle the led on the device (pressing the boot button) the phone will get a message about it.
+
 from machine import Pin
 from machine import Timer
 from time import sleep_ms
