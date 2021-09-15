@@ -1,20 +1,29 @@
 # ESP32 servo example.
-# Pin setup: Servo red to +5V (VIN),  black to Ground, signal (white or yellow) to GPIO23
 from machine import Pin, PWM
 import time
 
-p23 = Pin(23, Pin.OUT)  # Create a regular p23 GPIO object
-pwm = PWM(p23)  # Create another object named pwm by attaching the pwm driver to pin 23
+class Servo:
+    min = 36
+    max = 120
 
-pwm.freq(50)  # Set the pulse every 20ms
-s_min,s_max,step=36,120,7 # here minimum of 36 and not 20 is required for the duty cycle.
+    def __init__(self, pinNum, debug=False):
+        self.pwm = PWM(Pin(pinNum), freq=50)
+        self.debug=debug
+    def move(self, target):
+        if target>Servo.max:
+            target = Servo.max
+        elif target <Servo.min:
+            target =Servo.min
+        if self.debug:
+            print("move to ", target)
+        self.pwm.duty(target)
+#class ends here.
 
-def servo(pin, angle): # turns the servo to input angle.
-    print('angle', angle)
-    pin.duty(angle)
+# almost the same servo example, written OOP:
+# Pin setup: Servo red to +5V (VIN),  black to Ground, signal (white or yellow) to GPIO23
+
+servo1 = Servo(23)  # Servo(23,True) create a servo instance.
+
+for i in range(29, 140, 7):  # To rotate the servo from 0 to 180 degrees
+    servo1.move(i) #servo(pwm1, i)  # 7 is a 10 degrees increment
     time.sleep(0.5)
-
-for i in range(s_min, s_max, step):  # To rotate the servo from 0 to 180 degrees
-    servo(pwm, i)  # 7 is a 10 degrees increment
-for i in range(s_max, s_min, -step): servo(pwm, i)
-
