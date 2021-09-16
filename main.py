@@ -11,8 +11,8 @@ from machine import Pin, I2C
 led = Pin(2, Pin.OUT)
 but = Pin(0, Pin.IN)
 ble = ESP32_BLE("ESP32BLE")
-# servo1 = Servo(15, True)  # Servo(15, True,28,120,True)  # Servo(23, True) create a servo instance.
-dist_sensor = HCSR04(trigger_pin=13, echo_pin=12, echo_timeout_us=1000000) #you can either 5v, gnd D13, D12, or 3.3v, gnd, 15, 2 (both options are adjacent pins).
+servo1 = Servo(15, True)  # Servo(15, True,28,120,True)  # Servo(23, True) create a servo instance.
+dist_sensor = HCSR04(trigger_pin=13, echo_pin=12, echo_timeout_us=1000000) #red=5v, black=gnd, D13, D12
 
 
 def buttons_irq(pin):
@@ -39,13 +39,14 @@ try:
         print(bmsg)
         print('LED is ON.' if led.value() else 'LED is OFF')
         ble.send('LED is ON.' if led.value() else 'LED is OFF')
-    # servo section. not in use in this example
-    # elif bmsg == 'servo_R':
-    #     servo1.right(7)
-    # elif bmsg == 'servo_L':
-    #     servo1.left(7)
+    # servo section.
+    elif bmsg == 'servo_R':
+        servo1.right(7)
+    elif bmsg == 'servo_L':
+        servo1.left(7)
     elif bmsg == 'tog_led':  # phone is trying to toggle the led
         toggle_led()
+    # ultrasonic section
     elif bmsg == 'get_dist':  # phone requests distance
         ble.send(f'distance is: {round(dist_sensor.distance_cm(),1)}')
     sleep_ms(100)  # Blocking code
