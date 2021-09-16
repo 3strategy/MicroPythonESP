@@ -13,11 +13,10 @@ ble_msg = ""
 
 
 class Servo:
-
-    def __init__(self, pinNum, fade=False, min=28, max=120, debug=False):
+    # note that center does not have to be average, center should be used for Trimming (fine tuning of the model centerpoint).
+    def __init__(self, pinNum, fade=False, debug=False, center=72, min=28, max=120):
         self.pwm = PWM(Pin(pinNum), freq=50)
-        self.min, self.max, self.center = min, max, int(
-            (min + max) / 2)  # duty between about 40 and 115 (some take 28 to 120 and more).
+        self.min, self.max, self.center = min, max, center  # duty between about 40 and 115 (some take 28 to 120 and more).
         self.debug = debug
         self.position = self.pwm.duty()  # position will be a float for fading purposes.
         if self.position > max:
