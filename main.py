@@ -1,5 +1,8 @@
 # Bluetooth Low Energy with Servo.
-# Pin setup: Servo red to +5V (VIN),  black to Ground, signal (white or yellow) to GPIO23
+# Pin setup: Servo red to +5V (VIN),  black to Ground, signal (white or yellow) to GPIO15
+# note that these are 3 adjacent pins so you can swap servo wire to use the original servo
+# connector directly to +3.3v, GND, D15 (3.3v will also work for very small servos).
+# large servos should always be powered externally.
 from machine import Pin, PWM
 from machine import Timer
 from time import sleep_ms
@@ -9,14 +12,12 @@ ble_msg = ""
 
 
 class Servo:
-    # duty between about 40 and 115.
-    min = 36
-    max = 120
+    # duty between about 40 and 115 (some take 28 to 120 and more).
+    min, max = 28, 120
 
     def __init__(self, pinNum, debug=False):
         self.pwm = PWM(Pin(pinNum), freq=50)
         self.debug = debug
-        self.position = Servo.min
 
     def goto(self, target):
         if target > Servo.max:
@@ -24,15 +25,15 @@ class Servo:
         elif target < Servo.min:
             target = Servo.min
         if self.debug:
-            print("move to ", target)
+            print('DUTY IS', self.pwm.duty(), 'move to ', target)
+            sleep_ms(100)  # Blocking code
         self.pwm.duty(target)
-        self.position = target  # retain knowledge of position.
 
     def right(self, step):
-        self.goto(self.position + step)
+        self.goto(self.pwm.duty() + step)  # we can read the current servo position and use it
 
     def left(self, step):
-        self.goto(self.position - step)
+        self.goto(self.pwm.duty() - step)
 
 
 class ESP32_BLE():
@@ -113,7 +114,7 @@ class ESP32_BLE():
 led = Pin(2, Pin.OUT)
 but = Pin(0, Pin.IN)
 ble = ESP32_BLE("ESP32BLE")
-servo1 = Servo(23, True)  # Servo(23) create a servo instance.
+servo1 = Servo(15)  # Servo(23, True) create a servo instance.
 
 
 def buttons_irq(pin):
@@ -146,4 +147,4 @@ while True:
         servo1.left(7)
     elif bmsg == 'tog_led':
         toggle_led()
-    sleep_ms(100)
+    sleep_ms(100)  # Blocking code
