@@ -7,11 +7,12 @@ from servosguy import Servo
 from esp32_ble import ESP32_BLE
 from hcsr04 import HCSR04
 from machine import Pin, I2C
+import sys
 
 led = Pin(2, Pin.OUT)
 but = Pin(0, Pin.IN)
 ble = ESP32_BLE("ESP32BLE")
-servo1 = Servo(15, True, True, 72, 28, 120)  # create a servo instance.
+servo1 = Servo(15, True, True, 72, 28, 120, ble)  # create a servo instance.
 dist_sensor = HCSR04(trigger_pin=13, echo_pin=12, echo_timeout_us=1000000)  # red=5v, black=gnd, D13, D12
 print('main program start after boot. with BLE Stop support')
 
@@ -51,11 +52,21 @@ try:
         ble.send(f'distance is: {round(dist_sensor.distance_cm(), 1)}')
     # enable program close
     elif bmsg == 'stop':
+
+        # even after main loop is exited.
+        # How about the servo?
+        # OPEN an REPL and notice how the servoe "alive" timer keeps printing.
+        # So part of the program is still running.
+
+        servo1 = None
+        sleep_ms(5000)
         ble.send('stopping main loop')
         ble.ble.active(False)  # without this BLE would still function and accept connections
-        # even after main loop is exited.
+        sys.exit() # = None  # This will stop the servo
         break  # this effectively exits the main program loop.
         # but is the program really stopped? It's not!!!
+
+
     sleep_ms(50)  # Blocking code
 
 except KeyboardInterrupt:
