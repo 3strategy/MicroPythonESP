@@ -18,9 +18,9 @@ class Servo:
         if fade:
             self.tim = Timer(2)
             self.tim.init(period=100, mode=Timer.PERIODIC, callback=lambda t: self.fade())
-        if self.debug is not None:
-            self.tim2 = Timer(3)  # working with multiple timers, we need to assign timer to a different hardware timer.
-            self.tim2.init(period=2000, mode=Timer.PERIODIC, callback=lambda t: self.printalive())
+        # if self.debug is not None:
+        #     self.tim2 = Timer(3)  # working with multiple timers, we need to assign timer to a different hardware timer.
+        #     self.tim2.init(period=2000, mode=Timer.PERIODIC, callback=lambda t: self.printalive())
 
     def goto(self, target, is_internal=False):
         if target > self.max:
@@ -32,12 +32,12 @@ class Servo:
         target = int(round(target, 0))
 
         if is_internal or time.ticks_ms() - self.laststep_time > 230:  # only fade if user stopped sending steps
-            self.mydebug(f'{time.ticks_ms()} DUTY IS {self.pwm.duty()} move to {target}')
+            #self.mydebug(f'{time.ticks_ms()} DUTY IS {self.pwm.duty()} move to {target}')
                 #time.sleep_ms(100)  # Blocking code
             self.pwm.duty(target)
 
-    def printalive(self):
-        self.mydebug(f'{time.ticks_ms()}: servo alive')
+    # def printalive(self):
+    #     self.mydebug(f'{time.ticks_ms()}: servo alive')
 
     def fade(self):  # fades the servo back to center (called by timer)
         prevpos = self.position  # for debugging
@@ -47,7 +47,7 @@ class Servo:
         else:
             self.position +=0.5
         if (math.fabs(self.position - self.center) > 0.35):  # we only want to make a move if it is meaningful.
-            self.mydebug(f'fading {prevpos} to {self.center} via {self.position}')
+            self.mydebug(f'fading {prevpos:.1f} to {self.center} via {self.position:.1f}')
             self.goto(self.position)
 
     def right(self, step):
@@ -72,6 +72,6 @@ class Servo:
     def stoptimers(self):
         if self.tim is not None:
             self.tim.deinit()
-        if self.tim2 is not None:
-            self.tim2.deinit()
+        # if self.tim2 is not None:
+        #     self.tim2.deinit()
         self.debug('tried stopping timers')
