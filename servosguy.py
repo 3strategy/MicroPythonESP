@@ -10,7 +10,7 @@ class Servo:
         self.min, self.max, self.center = min, max, center  # duty between about 40 and 115 (some take 28 to 120 and more).
         self.debug = debug
         self.laststep_time=time.ticks_ms()
-        print ('time is',self.laststep_time)
+        print ('servo init. time is',self.laststep_time, 'debug is ', debug)
         self.position = self.pwm.duty()  # position will be a float for fading purposes.
         if self.position > max:
             self.position = self.center

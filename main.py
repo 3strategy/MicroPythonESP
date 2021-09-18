@@ -11,7 +11,7 @@ from machine import Pin, I2C
 led = Pin(2, Pin.OUT)
 but = Pin(0, Pin.IN)
 ble = ESP32_BLE("ESP32BLE")
-servo1 = Servo(15, True)  # Servo(15, True,True, 72, 28, 120)  create a servo instance.
+servo1 = Servo(15, True) # Servo(15, True,True, 72, 28, 120) # create a servo instance.
 dist_sensor = HCSR04(trigger_pin=13, echo_pin=12, echo_timeout_us=1000000) #red=5v, black=gnd, D13, D12
 print ('main program start after boot')
 
