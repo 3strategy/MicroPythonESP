@@ -12,7 +12,16 @@ import sys
 led = Pin(2, Pin.OUT)
 but = Pin(0, Pin.IN)
 ble = ESP32_BLE("ESP32BLE")
-servo1 = Servo(15, True, True, 72, 28, 120, ble)  # create a servo instance.
+debug = True
+debug_to_ble = True
+
+def maindebug(str):
+    if debug:
+        print(str)
+        if debug_to_ble and ble.is_connected:
+            ble.send(str)
+
+servo1 = Servo(15, True, maindebug, 72, 28, 120)  # create a servo instance.
 dist_sensor = HCSR04(trigger_pin=13, echo_pin=12, echo_timeout_us=1000000)  # red=5v, black=gnd, D13, D12
 print('main program start after boot. with BLE Stop support')
 
@@ -27,8 +36,7 @@ def toggle_led():  # this shows Android can control your device.
     else:
         s = ' Off'
     s = 'LED turned ' + s
-    ble.send(s)
-    print(s)
+    maindebug(s)
 
 
 but.irq(trigger=Pin.IRQ_FALLING, handler=buttons_irq)
@@ -37,9 +45,7 @@ try:
     bmsg = ble.msg
     ble.msg = ""  # this way we will not repeat acting on the message multiple times.
     if bmsg == 'read_LED':  # phone is trying to read the Led state.
-        print(bmsg)
-        print('LED is ON.' if led.value() else 'LED is OFF')
-        ble.send('LED is ON.' if led.value() else 'LED is OFF')
+        maindebug('LED is ON.' if led.value() else 'LED is OFF')
     # servo section.
     elif bmsg == 'servo_R':
         servo1.right(7)
@@ -50,22 +56,26 @@ try:
     # ultrasonic section
     elif bmsg == 'get_dist':  # phone requests distance
         ble.send(f'distance is: {round(dist_sensor.distance_cm(), 1)}')
+    elif bmsg == 'debug':
+        if debug_to_ble:
+            maindebug(f'set debug to : {not debug_to_ble}')
+            debug_to_ble = not debug_to_ble
+        else:
+            debug_to_ble = not debug_to_ble
+            maindebug(f'set debug to : {debug_to_ble}')
     # enable program close
     elif bmsg == 'stop':
-
         # even after main loop is exited.
         # How about the servo?
         # OPEN an REPL and notice how the servoe "alive" timer keeps printing.
         # So part of the program is still running.
-
+        servo1.stoptimers()
         servo1 = None
-        sleep_ms(5000)
         ble.send('stopping main loop')
         ble.ble.active(False)  # without this BLE would still function and accept connections
         sys.exit() # = None  # This will stop the servo
         break  # this effectively exits the main program loop.
         # but is the program really stopped? It's not!!!
-
 
     sleep_ms(50)  # Blocking code
 

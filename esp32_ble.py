@@ -18,12 +18,15 @@ class ESP32_BLE():
         self.ble.irq(self.ble_irq)
         self.register()
         self.advertiser()
+        self.is_connected = False
 
     def connected(self):
+        self.is_connected = True
         self.led.value(1)
         self.timer1.deinit()
 
     def disconnected(self):
+        self.is_connected = False
         self.timer1.init(period=100, mode=Timer.PERIODIC, callback=lambda t: self.led.value(not self.led.value()))
 
     def ble_irq(self, event, data):

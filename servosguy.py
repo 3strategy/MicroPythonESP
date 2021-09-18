@@ -6,22 +6,19 @@ import esp32_ble
 
 class Servo:
     # note that center does not have to be average, center should be used for Trimming (fine tuning of the model centerpoint).
-    def __init__(self, pinNum, fade=False, debug=False, center=72, min=28, max=120, ble = None):
-        self.ble = ble
+    def __init__(self, pinNum, fade=False, debug_function=None, center=72, min=28, max=120):
         self.pwm = PWM(Pin(pinNum), freq=50)
         self.min, self.max, self.center = min, max, center  # duty between about 40 and 115 (some take 28 to 120 and more).
-        self.debug = debug
+        self.debug = debug_function
         self.laststep_time = time.ticks_ms()
-        print('servo init. time is', self.laststep_time, 'debug is ', debug)
+        self.debug(f'servo init. time is {self.laststep_time}')
         self.position = self.pwm.duty()  # position will be a float for fading purposes.
-        if self.position > max:
-            self.position = self.center
-            self.goto(self.center)  # sometimes initial duty is 512... ? ? !
+        self.goto(self.center)  # sometimes initial duty is 512... ? ? !
 
         if fade:
             self.tim = Timer(2)
             self.tim.init(period=100, mode=Timer.PERIODIC, callback=lambda t: self.fade())
-        if debug:
+        if self.debug is not None:
             self.tim2 = Timer(3)  # working with multiple timers, we need to assign timer to a different hardware timer.
             self.tim2.init(period=2000, mode=Timer.PERIODIC, callback=lambda t: self.printalive())
 
@@ -35,13 +32,12 @@ class Servo:
         target = int(round(target, 0))
 
         if is_internal or time.ticks_ms() - self.laststep_time > 230:  # only fade if user stopped sending steps
-            if self.debug:
-                print(time.ticks_ms(), 'DUTY IS', self.pwm.duty(), 'move to ', target)
-                time.sleep_ms(100)  # Blocking code
+            self.mydebug(f'{time.ticks_ms()} DUTY IS {self.pwm.duty()} move to {target}')
+                #time.sleep_ms(100)  # Blocking code
             self.pwm.duty(target)
 
     def printalive(self):
-        print(time.ticks_ms(), ': servo alive', )
+        self.mydebug(f'{time.ticks_ms()}: servo alive')
 
     def fade(self):  # fades the servo back to center (called by timer)
         prevpos = self.position  # for debugging
@@ -51,8 +47,7 @@ class Servo:
         else:
             self.position +=0.5
         if (math.fabs(self.position - self.center) > 0.35):  # we only want to make a move if it is meaningful.
-            if self.debug:  # debug the servo fading numbers...
-                self.ble.send(f'fading {prevpos} to {self.center} via {self.position}')
+            self.mydebug(f'fading {prevpos} to {self.center} via {self.position}')
             self.goto(self.position)
 
     def right(self, step):
@@ -69,5 +64,14 @@ class Servo:
         self.laststep_time = time.ticks_ms()
         self.goto(current - step,True)
 
+    def mydebug(self, str):
+        if self.debug is not None:
+            self.debug(str)
 
 
+    def stoptimers(self):
+        if self.tim is not None:
+            self.tim.deinit()
+        if self.tim2 is not None:
+            self.tim2.deinit()
+        self.debug('tried stopping timers')
