@@ -38,6 +38,14 @@ def toggle_led():  # this shows Android can control your device.
     s = 'LED turned ' + s
     maindebug(s)
 
+def toggle_debug():
+    global debug_to_ble
+    if debug_to_ble:
+        maindebug(f'set debug to : {not debug_to_ble}')
+        debug_to_ble = not debug_to_ble
+    else:
+        debug_to_ble = not debug_to_ble
+        maindebug(f'set debug to : {debug_to_ble}')
 
 but.irq(trigger=Pin.IRQ_FALLING, handler=buttons_irq)
 try:
@@ -57,12 +65,7 @@ try:
     elif bmsg == 'get_dist':  # phone requests distance
         ble.send(f'distance is: {round(dist_sensor.distance_cm(), 1)}')
     elif bmsg == 'debug':
-        if debug_to_ble:
-            maindebug(f'set debug to : {not debug_to_ble}')
-            debug_to_ble = not debug_to_ble
-        else:
-            debug_to_ble = not debug_to_ble
-            maindebug(f'set debug to : {debug_to_ble}')
+        toggle_debug()
     # enable program close
     elif bmsg == 'stop':
         # even after main loop is exited.
