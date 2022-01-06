@@ -6,9 +6,10 @@ from time import sleep_ms
 from servosguy import Servo
 from esp32_ble import ESP32_BLE
 from hcsr04 import HCSR04
-from machine import Pin, I2C
+from machine import Pin, I2C, TouchPad
 import sys
 
+touch5 = TouchPad(Pin(32))
 led = Pin(2, Pin.OUT)
 but = Pin(0, Pin.IN)
 ble = ESP32_BLE("ESP32BLE")
@@ -49,8 +50,20 @@ def toggle_debug():
 
 but.irq(trigger=Pin.IRQ_FALLING, handler=buttons_irq)
 try:
+  threshold5=[]
+  for i in range(12): #This loop initializes the capacitive pin,
+      #It creates an average which serves as benchmark for checking
+      #whether or not the pin was touched.
+      threshold5.append(touch5.read())
+      sleep_ms(100)
+  threshold5 = sum(threshold5)//len(threshold5)
+
   while True:
     bmsg = ble.msg
+    touch5ratio = touch5.read()/threshold5  #read the pin and calculate ratio
+    if 0.4 < touch5ratio <0.95:
+        #this means a touch.
+        ble.send("clementine")
     ble.msg = ""  # this way we will not repeat acting on the message multiple times.
     if bmsg == 'read_LED':  # phone is trying to read the Led state.
         maindebug('LED is ON.' if led.value() else 'LED is OFF')
