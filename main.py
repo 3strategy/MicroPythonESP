@@ -58,12 +58,17 @@ try:
       sleep_ms(100)
   threshold5 = sum(threshold5)//len(threshold5)
 
+  touch5_on=False
   while True:
     bmsg = ble.msg
     touch5ratio = touch5.read()/threshold5  #read the pin and calculate ratio
-    if 0.4 < touch5ratio <0.95:
+    if 0.4 < touch5ratio <0.95 and touch5_on == False:
         #this means a touch.
-        ble.send("clementine")
+        maindebug("clementine")
+        touch5_on = True
+    elif (touch5ratio >=0.95 or touch5ratio<=0.4) and touch5_on == True:
+        touch5_on = False
+
     ble.msg = ""  # this way we will not repeat acting on the message multiple times.
     if bmsg == 'read_LED':  # phone is trying to read the Led state.
         maindebug('LED is ON.' if led.value() else 'LED is OFF')
